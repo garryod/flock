@@ -1,6 +1,9 @@
+mod sheep;
 mod terrain;
 
 use bevy::{core_pipeline::clear_color::ClearColorConfig, prelude::*};
+
+use sheep::{SheepPlugin, SpawnSheepEvent};
 
 use terrain::TerrainPlugin;
 
@@ -15,12 +18,16 @@ pub fn app() -> App {
         ..Default::default()
     })
     .add_plugins(DefaultPlugins)
+    .add_plugin(SheepPlugin)
     .add_plugin(TerrainPlugin)
     .add_startup_system(startup);
     app
 }
 
-fn startup(mut commands: Commands) {
+fn startup(
+    mut commands: Commands,
+    mut spawn_sheep_event_writer: EventWriter<SpawnSheepEvent>,
+) {
     commands.spawn_bundle(Camera3dBundle {
         camera: Camera {
             priority: 1,
@@ -46,4 +53,6 @@ fn startup(mut commands: Commands) {
             .looking_at(Vec3::ZERO, Vec3::Y),
         ..default()
     });
+
+    spawn_sheep_event_writer.send(SpawnSheepEvent::new(0_f32, 0_f32));
 }
