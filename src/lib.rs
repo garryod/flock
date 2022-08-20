@@ -1,4 +1,8 @@
+mod terrain;
+
 use bevy::{core_pipeline::clear_color::ClearColorConfig, prelude::*};
+
+use terrain::TerrainPlugin;
 
 pub const LAUNCHER_TITLE: &str = "Flock! Combine the herd.";
 
@@ -11,6 +15,7 @@ pub fn app() -> App {
         ..Default::default()
     })
     .add_plugins(DefaultPlugins)
+    .add_plugin(TerrainPlugin)
     .add_startup_system(startup);
     app
 }
