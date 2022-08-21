@@ -1,8 +1,11 @@
+mod common;
+mod player;
 mod sheep;
 mod terrain;
 
 use bevy::{core_pipeline::clear_color::ClearColorConfig, prelude::*};
 
+use player::{PlayerPlugin, SpawnPlayerEvent};
 use sheep::{SheepPlugin, SpawnSheepEvent};
 
 use terrain::TerrainPlugin;
@@ -18,6 +21,7 @@ pub fn app() -> App {
         ..Default::default()
     })
     .add_plugins(DefaultPlugins)
+    .add_plugin(PlayerPlugin)
     .add_plugin(SheepPlugin)
     .add_plugin(TerrainPlugin)
     .add_startup_system(startup);
@@ -26,6 +30,7 @@ pub fn app() -> App {
 
 fn startup(
     mut commands: Commands,
+    mut spawn_player_event_writer: EventWriter<SpawnPlayerEvent>,
     mut spawn_sheep_event_writer: EventWriter<SpawnSheepEvent>,
 ) {
     commands.spawn_bundle(Camera3dBundle {
@@ -54,5 +59,7 @@ fn startup(
         ..default()
     });
 
-    spawn_sheep_event_writer.send(SpawnSheepEvent::new(0_f32, 0_f32));
+    spawn_player_event_writer.send(SpawnPlayerEvent::new(0_f32, 0_f32));
+
+    spawn_sheep_event_writer.send(SpawnSheepEvent::new(10_f32, 10_f32));
 }
