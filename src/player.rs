@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use bevy::prelude::{shape::Capsule, *};
 use leafwing_input_manager::{orientation::Direction, prelude::*};
 
-use crate::common::Speed;
+use crate::{camera::MainCameraTag, common::Speed};
 
 #[derive(Component)]
 pub struct PlayerTag;
@@ -107,9 +107,9 @@ fn spawn_player(
 fn move_player(
     mut player_query: Query<
         (&mut Transform, &ActionState<PlayerMovementAction>, &Speed),
-        With<PlayerTag>,
+        (With<PlayerTag>, Without<MainCameraTag>),
     >,
-    camera_query: Query<&Transform, (With<Camera3d>, Without<PlayerTag>)>,
+    camera_query: Query<&Transform, (With<MainCameraTag>, Without<PlayerTag>)>,
     time: Res<Time>,
 ) {
     let camera_angle = camera_query.single().rotation.y - PI / 2_f32;
