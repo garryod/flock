@@ -2305,6 +2305,7 @@ name = "my-game"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "fastrand",
  "image",
  "leafwing-input-manager",
  "winit",
