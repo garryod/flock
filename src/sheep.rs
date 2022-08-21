@@ -36,7 +36,8 @@ pub struct SheepBundle {
     #[bundle]
     material_mesh: PbrBundle,
     speed: Speed,
-    player_fear: Avoidance<PlayerTag>,
+    player_avoidance: Avoidance<PlayerTag>,
+    sheep_avoidance: Avoidance<SheepTag>,
 }
 
 impl SheepBundle {
@@ -55,7 +56,8 @@ impl SheepBundle {
                 ..default()
             },
             speed: Speed::new(5.0),
-            player_fear: Avoidance::new(100_f32, 20.0),
+            player_avoidance: Avoidance::new(100_f32, 20.0),
+            sheep_avoidance: Avoidance::new(10_f32, 5.0),
         }
     }
 }
@@ -111,13 +113,47 @@ fn player_move_influence(
                     player_transform.translation.z,
                 );
                 if seperation.length() < avoidance.range {
-                    let influence = avoidance.strength * seperation
-                        / seperation.length().powi(3);
-                    move_influences.0.push(influence);
+                    move_influences.0.push(
+                        avoidance.strength * seperation
+                            / seperation.length().powi(3),
+                    );
                 }
             })
         },
     )
+}
+
+fn avoid_boid_move_influence(
+    mut sheep_query: Query<
+        (&mut MoveInfluences, &Transform, &Avoidance<SheepTag>),
+        With<SheepTag>,
+    >,
+) {
+    let mut combinations = sheep_query.iter_combinations_mut::<2>();
+    while let Some(
+        [(mut sheep_a_move_influences, sheep_a_transform, sheep_a_avoidance), (mut sheep_b_move_influences, sheep_b_transform, sheep_b_avoidance)],
+    ) = combinations.fetch_next()
+    {
+        let seperation = Vec2::new(
+            sheep_a_transform.translation.x,
+            sheep_a_transform.translation.z,
+        ) - Vec2::new(
+            sheep_b_transform.translation.x,
+            sheep_b_transform.translation.z,
+        );
+        if seperation.length() < sheep_a_avoidance.range {
+            sheep_a_move_influences.0.push(
+                sheep_a_avoidance.strength * seperation
+                    / seperation.length().powi(3),
+            );
+        }
+        if seperation.length() < sheep_b_avoidance.range {
+            sheep_b_move_influences.0.push(
+                sheep_a_avoidance.strength * -seperation
+                    / seperation.length().powi(3),
+            );
+        }
+    }
 }
 
 #[derive(SystemLabel)]
@@ -149,6 +185,7 @@ impl Plugin for SheepPlugin {
         app.add_event::<SpawnSheepEvent>()
             .add_system(spawn_sheep)
             .add_system(move_sheep.label(MoveSheepLabel))
-            .add_system(player_move_influence.before(MoveSheepLabel));
+            .add_system(player_move_influence.before(MoveSheepLabel))
+            .add_system(avoid_boid_move_influence.before(MoveSheepLabel));
     }
 }
