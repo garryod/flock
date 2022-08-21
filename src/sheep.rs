@@ -120,6 +120,9 @@ fn player_move_influence(
     )
 }
 
+#[derive(SystemLabel)]
+struct MoveSheepLabel;
+
 fn move_sheep(
     mut sheep_query: Query<
         (&mut Transform, &mut MoveInfluences, &Speed),
@@ -145,7 +148,7 @@ impl Plugin for SheepPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SpawnSheepEvent>()
             .add_system(spawn_sheep)
-            .add_system(move_sheep)
-            .add_system(player_move_influence);
+            .add_system(move_sheep.label(MoveSheepLabel))
+            .add_system(player_move_influence.before(MoveSheepLabel));
     }
 }
