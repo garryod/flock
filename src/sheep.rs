@@ -3,18 +3,26 @@ use std::marker::PhantomData;
 use bevy::prelude::shape::UVSphere;
 use bevy::prelude::*;
 
-use crate::common::{MaxSpeed, MinSpeed};
+use crate::common::Speed;
 use crate::player::PlayerTag;
 
 #[derive(Component)]
 struct MoveInfluences(Vec<Vec2>);
 
 #[derive(Component)]
-struct Fear<C: Component>(f32, PhantomData<C>);
+struct Avoidance<C: Component> {
+    strength: f32,
+    range: f32,
+    component: PhantomData<C>,
+}
 
-impl<C: Component> Fear<C> {
-    fn new(fear: f32) -> Self {
-        Self(fear, PhantomData)
+impl<C: Component> Avoidance<C> {
+    fn new(strength: f32, range: f32) -> Self {
+        Self {
+            strength,
+            range,
+            component: PhantomData,
+        }
     }
 }
 
@@ -27,9 +35,8 @@ pub struct SheepBundle {
     move_influences: MoveInfluences,
     #[bundle]
     material_mesh: PbrBundle,
-    max_speed: MaxSpeed,
-    min_speed: MinSpeed,
-    player_fear: Fear<PlayerTag>,
+    speed: Speed,
+    player_fear: Avoidance<PlayerTag>,
 }
 
 impl SheepBundle {
@@ -47,9 +54,8 @@ impl SheepBundle {
                 transform: Transform::from_xyz(position.x, 1_f32, position.y),
                 ..default()
             },
-            max_speed: MaxSpeed::new(5.0),
-            min_speed: MinSpeed::new(0.01),
-            player_fear: Fear::new(100_f32),
+            speed: Speed::new(5.0),
+            player_fear: Avoidance::new(100_f32, 20.0),
         }
     }
 }
@@ -89,13 +95,13 @@ fn spawn_sheep(
 
 fn player_move_influence(
     mut sheep_query: Query<
-        (&mut MoveInfluences, &Transform, &Fear<PlayerTag>),
+        (&mut MoveInfluences, &Transform, &Avoidance<PlayerTag>),
         (With<SheepTag>, Without<PlayerTag>),
     >,
     player_query: Query<&Transform, (With<PlayerTag>, Without<SheepTag>)>,
 ) {
     sheep_query.iter_mut().for_each(
-        |(mut move_influences, sheep_transform, player_fear)| {
+        |(mut move_influences, sheep_transform, avoidance)| {
             player_query.iter().for_each(|player_transform| {
                 let seperation = Vec2::new(
                     sheep_transform.translation.x,
@@ -104,36 +110,28 @@ fn player_move_influence(
                     player_transform.translation.x,
                     player_transform.translation.z,
                 );
-                let influence =
-                    player_fear.0 * seperation / seperation.length().powi(3);
-                move_influences.0.push(influence);
+                if seperation.length() < avoidance.range {
+                    let influence = avoidance.strength * seperation
+                        / seperation.length().powi(3);
+                    move_influences.0.push(influence);
+                }
             })
         },
     )
 }
 
-fn vec_minimum_or_zero(vec: Vec2, minimum: f32) -> Vec2 {
-    if vec.length() < minimum {
-        Vec2::ZERO
-    } else {
-        vec
-    }
-}
-
 fn move_sheep(
     mut sheep_query: Query<
-        (&mut Transform, &mut MoveInfluences, &MaxSpeed, &MinSpeed),
+        (&mut Transform, &mut MoveInfluences, &Speed),
         With<SheepTag>,
     >,
     time: Res<Time>,
 ) {
     sheep_query.iter_mut().for_each(
-        |(mut transform, mut move_influences, max_speed, min_speed)| {
-            let move_vec = vec_minimum_or_zero(
-                (move_influences.0.iter().sum::<Vec2>() * time.delta_seconds())
-                    .clamp_length_max(max_speed.0),
-                min_speed.0,
-            );
+        |(mut transform, mut move_influences, max_speed)| {
+            let move_vec = (move_influences.0.iter().sum::<Vec2>()
+                * time.delta_seconds())
+            .clamp_length_max(max_speed.0);
             transform.translation.x += move_vec.x;
             transform.translation.z += move_vec.y;
             move_influences.0.clear();

@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use bevy::prelude::{shape::Capsule, *};
 use leafwing_input_manager::{orientation::Direction, prelude::*};
 
-use crate::{camera::MainCameraTag, common::MaxSpeed};
+use crate::{camera::MainCameraTag, common::Speed};
 
 #[derive(Component)]
 pub struct PlayerTag;
@@ -34,7 +34,7 @@ struct PlayerBundle {
     mesh: PbrBundle,
     #[bundle]
     input_manager: InputManagerBundle<PlayerMovementAction>,
-    speed: MaxSpeed,
+    speed: Speed,
 }
 
 impl PlayerBundle {
@@ -66,7 +66,7 @@ impl PlayerBundle {
                 action_state: ActionState::default(),
                 input_map: Self::default_input_map(),
             },
-            speed: MaxSpeed::new(10.0),
+            speed: Speed::new(10.0),
         }
     }
 }
@@ -106,11 +106,7 @@ fn spawn_player(
 
 fn move_player(
     mut player_query: Query<
-        (
-            &mut Transform,
-            &ActionState<PlayerMovementAction>,
-            &MaxSpeed,
-        ),
+        (&mut Transform, &ActionState<PlayerMovementAction>, &Speed),
         (With<PlayerTag>, Without<MainCameraTag>),
     >,
     camera_query: Query<&Transform, (With<MainCameraTag>, Without<PlayerTag>)>,
