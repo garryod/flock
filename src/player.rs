@@ -59,14 +59,14 @@ impl PlayerBundle {
             mesh: PbrBundle {
                 mesh,
                 material,
-                transform: Transform::from_xyz(position.x, 2_f32, position.y),
+                transform: Transform::from_xyz(position.x, 1.0, position.y),
                 ..default()
             },
             input_manager: InputManagerBundle {
                 action_state: ActionState::default(),
                 input_map: Self::default_input_map(),
             },
-            speed: MaxSpeed::new(32_f32),
+            speed: MaxSpeed::new(10.0),
         }
     }
 }
@@ -93,8 +93,8 @@ fn spawn_player(
         .for_each(|spawn_player_event| {
             commands.spawn_bundle(PlayerBundle::new(
                 mesh_assets.add(Mesh::from(Capsule {
-                    radius: 1_f32,
-                    depth: 2_f32,
+                    radius: 0.5,
+                    depth: 1.0,
                     ..default()
                 })),
                 standard_material_assets
