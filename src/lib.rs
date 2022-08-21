@@ -1,10 +1,12 @@
+mod camera;
 mod common;
 mod player;
 mod sheep;
 mod terrain;
 
-use bevy::{core_pipeline::clear_color::ClearColorConfig, prelude::*};
+use bevy::prelude::*;
 
+use camera::MainCameraPlugin;
 use player::{PlayerPlugin, SpawnPlayerEvent};
 use sheep::{SheepPlugin, SpawnSheepEvent};
 
@@ -21,6 +23,7 @@ pub fn app() -> App {
         ..Default::default()
     })
     .add_plugins(DefaultPlugins)
+    .add_plugin(MainCameraPlugin)
     .add_plugin(PlayerPlugin)
     .add_plugin(SheepPlugin)
     .add_plugin(TerrainPlugin)
@@ -33,20 +36,6 @@ fn startup(
     mut spawn_player_event_writer: EventWriter<SpawnPlayerEvent>,
     mut spawn_sheep_event_writer: EventWriter<SpawnSheepEvent>,
 ) {
-    commands.spawn_bundle(Camera3dBundle {
-        camera: Camera {
-            priority: 1,
-            ..default()
-        },
-        camera_3d: Camera3d {
-            clear_color: ClearColorConfig::Custom(Color::hsl(196.0, 0.5, 0.75)),
-            ..default()
-        },
-        transform: Transform::from_xyz(-50.0, 50.0, -100_f32)
-            .looking_at(Vec3::ZERO, Vec3::Y),
-        ..default()
-    });
-
     commands.spawn_bundle(DirectionalLightBundle {
         directional_light: DirectionalLight {
             color: Color::WHITE,
