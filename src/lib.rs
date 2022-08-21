@@ -50,5 +50,10 @@ fn startup(
 
     spawn_player_event_writer.send(SpawnPlayerEvent::new(0_f32, 0_f32));
 
-    spawn_sheep_event_writer.send(SpawnSheepEvent::new(10_f32, 10_f32));
+    (0..10).for_each(|_| {
+        spawn_sheep_event_writer.send(SpawnSheepEvent::new(
+            fastrand::f32() * 20.0 - 10.0,
+            fastrand::f32() * 20.0 - 10.0,
+        ))
+    });
 }
