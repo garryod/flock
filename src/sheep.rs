@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use bevy::prelude::shape::UVSphere;
+use bevy::prelude::shape;
 use bevy::prelude::*;
 
 use crate::common::Speed;
@@ -52,7 +52,7 @@ impl SheepBundle {
             material_mesh: PbrBundle {
                 mesh,
                 material,
-                transform: Transform::from_xyz(position.x, 1_f32, position.y),
+                transform: Transform::from_xyz(position.x, 0_f32, position.y),
                 ..default()
             },
             speed: Speed::new(5.0),
@@ -84,9 +84,13 @@ fn spawn_sheep(
         .iter()
         .for_each(|spawn_sheep_event| {
             commands.spawn_bundle(SheepBundle::new(
-                mesh_assets.add(Mesh::from(UVSphere {
-                    radius: 0.5,
-                    ..default()
+                mesh_assets.add(Mesh::from(shape::Box {
+                    min_x: -0.5,
+                    max_x: 0.5,
+                    min_y: 0.0,
+                    max_y: 0.5,
+                    min_z: -0.25,
+                    max_z: 0.25,
                 })),
                 standard_material_assets
                     .add(StandardMaterial::from(Color::ANTIQUE_WHITE)),
@@ -149,7 +153,7 @@ fn avoid_boid_move_influence(
         }
         if seperation.length() < sheep_b_avoidance.range {
             sheep_b_move_influences.0.push(
-                sheep_a_avoidance.strength * -seperation
+                sheep_b_avoidance.strength * -seperation
                     / seperation.length().powi(3),
             );
         }
@@ -171,9 +175,14 @@ fn move_sheep(
             let move_vec = (move_influences.0.iter().sum::<Vec2>()
                 * time.delta_seconds())
             .clamp_length_max(max_speed.0);
-            transform.translation.x += move_vec.x;
-            transform.translation.z += move_vec.y;
+            if move_vec.length_squared() > 0.01_f32.powi(2) {
+                transform.translation.x += move_vec.x;
+                transform.translation.z += move_vec.y;
+                transform.rotation =
+                    Quat::from_rotation_y(move_vec.angle_between(Vec2::X));
+            }
             move_influences.0.clear();
+            move_influences.0.push(move_vec * 0.8)
         },
     )
 }
