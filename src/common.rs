@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 
 #[derive(Component)]
-pub struct Speed(pub f32);
+pub struct MaxSpeed(pub f32);
 
-impl Speed {
+impl MaxSpeed {
     pub fn new(speed: f32) -> Self {
         Self(speed)
     }
