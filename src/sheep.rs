@@ -107,7 +107,7 @@ impl SheepBundle {
             speed: MaxSpeed::new(5.0),
             momentum: Speed::new(),
             player_avoidance: Avoidance::new(100.0, 10_f32),
-            barrier_avoidance: Avoidance::new(100.0, 10_f32),
+            barrier_avoidance: Avoidance::new(100.0, 5_f32),
             sheep_avoidance: Avoidance::new(10.0, 10_f32),
             sheep_coalescence: Coalescence::new(5.0, 10_f32),
             sheep_alignment: Alignment::new(1.0, 10_f32),

@@ -92,10 +92,10 @@ fn startup(
         fastrand::f32() * 80_f32 - 40_f32,
     );
     let pen_corners = [
-        pen_centre + Vec2::new(10_f32, 10_f32),
-        pen_centre + Vec2::new(10_f32, -10_f32),
-        pen_centre + Vec2::new(-10_f32, -10_f32),
-        pen_centre + Vec2::new(-10_f32, 10_f32),
+        pen_centre + Vec2::new(7.5, 7.5),
+        pen_centre + Vec2::new(7.5, -7.5),
+        pen_centre + Vec2::new(-7.5, -7.5),
+        pen_centre + Vec2::new(-7.5, 7.5),
     ];
 
     pen_corners.iter().zip(pen_corners.iter().skip(1)).for_each(
