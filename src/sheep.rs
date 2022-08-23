@@ -3,6 +3,7 @@ use std::marker::PhantomData;
 use bevy::prelude::shape;
 use bevy::prelude::*;
 
+use crate::barrier::Barrier;
 use crate::common::MaxSpeed;
 use crate::player::PlayerTag;
 
@@ -83,6 +84,7 @@ pub struct SheepBundle {
     speed: MaxSpeed,
     momentum: Speed,
     player_avoidance: Avoidance<PlayerTag>,
+    barrier_avoidance: Avoidance<Barrier>,
     sheep_avoidance: Avoidance<SheepTag>,
     sheep_coalescence: Coalescence<SheepTag>,
     sheep_alignment: Alignment<SheepTag>,
@@ -104,7 +106,8 @@ impl SheepBundle {
             },
             speed: MaxSpeed::new(5.0),
             momentum: Speed::new(),
-            player_avoidance: Avoidance::new(100.0, 20_f32),
+            player_avoidance: Avoidance::new(100.0, 10_f32),
+            barrier_avoidance: Avoidance::new(100.0, 10_f32),
             sheep_avoidance: Avoidance::new(10.0, 10_f32),
             sheep_coalescence: Coalescence::new(5.0, 10_f32),
             sheep_alignment: Alignment::new(1.0, 10_f32),
@@ -248,6 +251,32 @@ fn sheep_influences(
     }
 }
 
+fn barrier_influence(
+    mut sheep_query: Query<
+        (&mut Avoidance<Barrier>, &Transform),
+        With<SheepTag>,
+    >,
+    linear_barrier_query: Query<&Barrier, Without<SheepTag>>,
+) {
+    sheep_query
+        .iter_mut()
+        .for_each(|(mut avoidance, sheep_transform)| {
+            linear_barrier_query.iter().for_each(|barrier| {
+                let sheep_position = Vec2::new(
+                    sheep_transform.translation.x,
+                    sheep_transform.translation.z,
+                );
+                let seperation =
+                    sheep_position - barrier.projected_point(sheep_position);
+                if seperation.length() < avoidance.range {
+                    avoidance
+                        .influences
+                        .push(seperation / seperation.length_squared());
+                }
+            })
+        })
+}
+
 #[derive(SystemLabel)]
 struct MoveSheepLabel;
 
@@ -256,6 +285,7 @@ fn move_sheep(
         (
             &mut Transform,
             &mut Avoidance<PlayerTag>,
+            &mut Avoidance<Barrier>,
             &mut Avoidance<SheepTag>,
             &mut Coalescence<SheepTag>,
             &mut Alignment<SheepTag>,
@@ -270,6 +300,7 @@ fn move_sheep(
         |(
             mut transform,
             mut player_avoidance,
+            mut barrier_avoidance,
             mut sheep_avoidance,
             mut sheep_coalescence,
             mut sheep_alignment,
@@ -279,6 +310,9 @@ fn move_sheep(
             let player_avoidance_influence =
                 player_avoidance.influences.iter().sum::<Vec2>();
             player_avoidance.influences.clear();
+            let barrier_avoidance_influence =
+                barrier_avoidance.influences.iter().sum::<Vec2>();
+            barrier_avoidance.influences.clear();
             let sheep_avoidance_influence =
                 sheep_avoidance.influences.iter().sum::<Vec2>();
             sheep_avoidance.influences.clear();
@@ -296,6 +330,9 @@ fn move_sheep(
             speed.0 = (speed.0
                 + player_avoidance_influence
                     * player_avoidance.strength
+                    * time.delta_seconds()
+                + barrier_avoidance_influence
+                    * barrier_avoidance.strength
                     * time.delta_seconds()
                 + sheep_avoidance_influence
                     * sheep_avoidance.strength
@@ -327,6 +364,7 @@ impl Plugin for SheepPlugin {
             .add_system(spawn_sheep)
             .add_system(move_sheep.label(MoveSheepLabel))
             .add_system(player_influence.before(MoveSheepLabel))
+            .add_system(barrier_influence.before(MoveSheepLabel))
             .add_system(sheep_influences.before(MoveSheepLabel));
     }
 }
