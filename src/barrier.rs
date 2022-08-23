@@ -43,12 +43,16 @@ impl BarrierBundle {
                     max_x: 0.1,
                     min_y: 0.0,
                     max_y: 1.0,
-                    min_z: 0.0,
-                    max_z: (vertex_a - vertex_b).length(),
+                    min_z: -(vertex_a - vertex_b).length(),
+                    max_z: 0.0,
                 })),
                 material: standard_material_assets
                     .add(StandardMaterial::from(Color::hsl(26.0, 0.30, 0.35))),
-                transform: Transform::from_xyz(vertex_a.x, 0_f32, vertex_a.y),
+                transform: Transform::from_xyz(vertex_a.x, 0_f32, vertex_a.y)
+                    .looking_at(
+                        Vec3::new(vertex_b.x, 0_f32, vertex_b.y),
+                        Vec3::Y,
+                    ),
                 ..default()
             },
         }
