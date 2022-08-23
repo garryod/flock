@@ -1,11 +1,12 @@
+mod barrier;
 mod camera;
 mod common;
 mod player;
 mod sheep;
 mod terrain;
 
+use barrier::{BarrierPlugin, SpawnBarrierEvent};
 use bevy::prelude::*;
-
 use camera::MainCameraPlugin;
 use player::{PlayerPlugin, SpawnPlayerEvent};
 use sheep::{SheepPlugin, SpawnSheepEvent};
@@ -26,6 +27,7 @@ pub fn app() -> App {
     .add_plugin(MainCameraPlugin)
     .add_plugin(PlayerPlugin)
     .add_plugin(SheepPlugin)
+    .add_plugin(BarrierPlugin)
     .add_plugin(TerrainPlugin)
     .add_startup_system(startup);
     app
@@ -35,6 +37,7 @@ fn startup(
     mut commands: Commands,
     mut spawn_player_event_writer: EventWriter<SpawnPlayerEvent>,
     mut spawn_sheep_event_writer: EventWriter<SpawnSheepEvent>,
+    mut spawn_barrier_event_writer: EventWriter<SpawnBarrierEvent>,
 ) {
     commands.spawn_bundle(DirectionalLightBundle {
         directional_light: DirectionalLight {
@@ -56,4 +59,49 @@ fn startup(
             fastrand::f32() * 20.0 - 10.0,
         ))
     });
+
+    let field_corners = [
+        Vec2::new(
+            45_f32 + fastrand::f32() * 10_f32,
+            45_f32 + fastrand::f32() * 10_f32,
+        ),
+        Vec2::new(
+            45_f32 + fastrand::f32() * 10_f32,
+            -45_f32 - fastrand::f32() * 10_f32,
+        ),
+        Vec2::new(
+            -45_f32 - fastrand::f32() * 10_f32,
+            -45_f32 - fastrand::f32() * 10_f32,
+        ),
+        Vec2::new(
+            -45_f32 - fastrand::f32() * 10_f32,
+            45_f32 + fastrand::f32() * 10_f32,
+        ),
+    ];
+
+    field_corners
+        .iter()
+        .zip(field_corners.iter().cycle().skip(1))
+        .for_each(|(vertex_a, vertex_b)| {
+            spawn_barrier_event_writer
+                .send(SpawnBarrierEvent::new(*vertex_a, *vertex_b))
+        });
+
+    let pen_centre = Vec2::new(
+        fastrand::f32() * 80_f32 - 40_f32,
+        fastrand::f32() * 80_f32 - 40_f32,
+    );
+    let pen_corners = [
+        pen_centre + Vec2::new(10_f32, 10_f32),
+        pen_centre + Vec2::new(10_f32, -10_f32),
+        pen_centre + Vec2::new(-10_f32, -10_f32),
+        pen_centre + Vec2::new(-10_f32, 10_f32),
+    ];
+
+    pen_corners.iter().zip(pen_corners.iter().skip(1)).for_each(
+        |(vertex_a, vertex_b)| {
+            spawn_barrier_event_writer
+                .send(SpawnBarrierEvent::new(*vertex_a, *vertex_b))
+        },
+    );
 }
