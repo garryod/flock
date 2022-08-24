@@ -1,6 +1,7 @@
 mod barrier;
 mod camera;
 mod common;
+mod pen;
 mod player;
 mod sheep;
 mod terrain;
@@ -9,8 +10,9 @@ use barrier::{BarrierPlugin, SpawnBarrierEvent};
 use bevy::prelude::*;
 use camera::MainCameraPlugin;
 use iyes_loopless::prelude::*;
+use pen::{Pen, PenPlugin, SpawnPenEvent};
 use player::{PlayerPlugin, SpawnPlayerEvent};
-use sheep::{SheepPlugin, SpawnSheepEvent};
+use sheep::{SheepPlugin, SheepTag, SpawnSheepEvent};
 use terrain::TerrainPlugin;
 
 pub const LAUNCHER_TITLE: &str = "Flock! Combine the herd.";
@@ -18,6 +20,7 @@ pub const LAUNCHER_TITLE: &str = "Flock! Combine the herd.";
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
 enum GameState {
     Playing,
+    Success,
 }
 
 pub fn app() -> App {
@@ -33,17 +36,17 @@ pub fn app() -> App {
     .add_plugin(PlayerPlugin)
     .add_plugin(SheepPlugin)
     .add_plugin(BarrierPlugin)
+    .add_plugin(PenPlugin)
     .add_plugin(TerrainPlugin)
     .add_loopless_state(GameState::Playing)
-    .add_enter_system(GameState::Playing, start_level)
+    .add_enter_system(GameState::Playing, start_round)
     .add_event::<SpawnLightEvent>()
     .add_system(spawn_light)
     .add_event::<SpawnClusterEvent>()
     .add_system(spawn_cluster)
     .add_event::<SpawnFieldEvent>()
     .add_system(spawn_field)
-    .add_event::<SpawnPenEvent>()
-    .add_system(spawn_pen)
+    .add_system(check_win.run_in_state(GameState::Playing))
     .add_startup_system(startup);
     app
 }
@@ -164,40 +167,24 @@ fn spawn_field(
     })
 }
 
-struct SpawnPenEvent;
-
-impl SpawnPenEvent {
-    fn new() -> Self {
-        Self
+fn check_win(
+    pen_query: Query<&Pen>,
+    sheep_query: Query<&Transform, With<SheepTag>>,
+    mut commands: Commands,
+) {
+    if let Ok(pen) = pen_query.get_single() {
+        if sheep_query.iter().all(|transform| {
+            pen.contains(Vec2::new(
+                transform.translation.x,
+                transform.translation.z,
+            ))
+        }) {
+            commands.insert_resource(NextState(GameState::Success))
+        }
     }
 }
 
-fn spawn_pen(
-    mut spawn_pen_event_reader: EventReader<SpawnPenEvent>,
-    mut spawn_barrier_event_writer: EventWriter<SpawnBarrierEvent>,
-) {
-    spawn_pen_event_reader.iter().for_each(|_| {
-        let pen_centre = Vec2::new(
-            fastrand::f32() * 80_f32 - 40_f32,
-            fastrand::f32() * 80_f32 - 40_f32,
-        );
-        let pen_corners = [
-            pen_centre + Vec2::new(7.5, 7.5),
-            pen_centre + Vec2::new(7.5, -7.5),
-            pen_centre + Vec2::new(-7.5, -7.5),
-            pen_centre + Vec2::new(-7.5, 7.5),
-        ];
-
-        pen_corners.iter().zip(pen_corners.iter().skip(1)).for_each(
-            |(vertex_a, vertex_b)| {
-                spawn_barrier_event_writer
-                    .send(SpawnBarrierEvent::new(*vertex_a, *vertex_b))
-            },
-        );
-    })
-}
-
-fn start_level(
+fn start_round(
     mut round_manager_query: Query<&mut RoundManager>,
     mut spawn_player_event_writer: EventWriter<SpawnPlayerEvent>,
     mut spawn_light_event_writer: EventWriter<SpawnLightEvent>,

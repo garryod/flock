@@ -74,7 +74,7 @@ impl<C: Component> Alignment<C> {
 }
 
 #[derive(Component)]
-struct SheepTag;
+pub struct SheepTag;
 
 #[derive(Bundle)]
 pub struct SheepBundle {
