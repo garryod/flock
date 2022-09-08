@@ -18,7 +18,7 @@ opt-level = 'z'
 lto = true
 
 [dependencies]
-bevy = "0.8.0"
+bevy = "0.8.1"
 leafwing-input-manager = "0.5.2"
 iyes_loopless = "0.7.1"
 fastrand = "1.8.0"
