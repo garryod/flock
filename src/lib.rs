@@ -25,13 +25,15 @@ enum GameState {
 
 pub fn app() -> App {
     let mut app = App::new();
-    app.insert_resource(WindowDescriptor {
-        title: LAUNCHER_TITLE.to_string(),
-        canvas: Some("#bevy".to_string()),
-        fit_canvas_to_parent: true,
-        ..Default::default()
-    })
-    .add_plugins(DefaultPlugins)
+    app.add_plugins(DefaultPlugins.set(WindowPlugin {
+        window: WindowDescriptor {
+            title: LAUNCHER_TITLE.to_string(),
+            canvas: Some("#bevy".to_string()),
+            fit_canvas_to_parent: true,
+            ..Default::default()
+        },
+        ..default()
+    }))
     .add_plugin(MainCameraPlugin)
     .add_plugin(PlayerPlugin)
     .add_plugin(SheepPlugin)
