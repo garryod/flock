@@ -19,7 +19,7 @@ lto = true
 
 [dependencies]
 bevy = "0.8.1"
-leafwing-input-manager = "0.6.0"
+leafwing-input-manager = "0.8.0"
 iyes_loopless = "0.8.0"
 fastrand = "1.8.0"
 image = "0.24.5"
