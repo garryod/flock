@@ -91,7 +91,7 @@ fn spawn_player(
     spawn_player_event_reader
         .iter()
         .for_each(|spawn_player_event| {
-            commands.spawn_bundle(PlayerBundle::new(
+            commands.spawn(PlayerBundle::new(
                 mesh_assets.add(Mesh::from(Capsule {
                     radius: 0.5,
                     depth: 1.0,

@@ -114,7 +114,7 @@ fn spawn_light(
     mut spawn_light_event_reader: EventReader<SpawnLightEvent>,
 ) {
     spawn_light_event_reader.iter().for_each(|_| {
-        commands.spawn_bundle(DirectionalLightBundle {
+        commands.spawn(DirectionalLightBundle {
             directional_light: DirectionalLight {
                 color: Color::WHITE,
                 illuminance: 50000_f32,

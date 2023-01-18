@@ -35,7 +35,7 @@ impl MainCameraBundle {
 pub struct MainCameraPlugin;
 
 fn startup(mut commands: Commands) {
-    commands.spawn_bundle(MainCameraBundle::new(
+    commands.spawn(MainCameraBundle::new(
         Transform::from_xyz(-50.0, 50.0, -100_f32)
             .looking_at(Vec3::ZERO, Vec3::Y),
     ));

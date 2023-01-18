@@ -134,7 +134,7 @@ fn spawn_sheep(
     spawn_sheep_event_reader
         .iter()
         .for_each(|spawn_sheep_event| {
-            commands.spawn_bundle(SheepBundle::new(
+            commands.spawn(SheepBundle::new(
                 mesh_assets.add(Mesh::from(shape::Box {
                     min_x: -0.5,
                     max_x: 0.5,

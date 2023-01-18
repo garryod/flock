@@ -79,7 +79,7 @@ fn spawn_barrier(
     spawn_barrier_event_reader
         .iter()
         .for_each(|spawn_barrier_event| {
-            commands.spawn_bundle(BarrierBundle::new(
+            commands.spawn(BarrierBundle::new(
                 spawn_barrier_event.vertex_a,
                 spawn_barrier_event.vertex_b,
                 &mut mesh_assets,
