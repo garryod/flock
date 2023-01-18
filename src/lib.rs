@@ -98,7 +98,7 @@ fn spawn_cluster(
 }
 
 fn startup(mut commands: Commands) {
-    commands.spawn().insert(RoundManager::new());
+    commands.spawn(RoundManager::new());
 }
 
 struct SpawnLightEvent;
