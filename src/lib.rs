@@ -61,14 +61,14 @@ impl RoundManager {
         Self(0)
     }
 
-    fn next_level(&mut self) -> () {
+    fn next_level(&mut self) {
         self.0 += 1;
     }
 
     fn get_cluster_sizes(&self) -> Vec<usize> {
-        return (0..self.0)
+        (0..self.0)
             .map(|_| fastrand::usize(1..self.0 + 1))
-            .collect();
+            .collect()
     }
 }
 

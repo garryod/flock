@@ -23,8 +23,7 @@ impl Pen {
     pub fn contains(&self, position: Vec2) -> bool {
         let distance =
             (position - self.centre).rotate(Vec2::from_angle(self.angle));
-        return distance.x < self.width / 2_f32
-            && distance.y < self.height / 2_f32;
+        distance.x < self.width / 2_f32 && distance.y < self.height / 2_f32
     }
 }
 

@@ -104,6 +104,7 @@ fn spawn_player(
         })
 }
 
+#[allow(clippy::type_complexity)]
 fn move_player(
     mut player_query: Query<
         (

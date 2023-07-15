@@ -153,7 +153,7 @@ fn spawn_sheep(
 fn player_influence(
     mut sheep_query: Query<
         (&mut Avoidance<PlayerTag>, &Transform),
-        (With<SheepTag>, Without<PlayerTag>),
+        With<SheepTag>,
     >,
     player_query: Query<&Transform, (With<PlayerTag>, Without<SheepTag>)>,
 ) {
@@ -177,6 +177,7 @@ fn player_influence(
         })
 }
 
+#[allow(clippy::type_complexity)]
 fn sheep_influences(
     mut sheep_query: Query<
         (
@@ -278,6 +279,7 @@ fn barrier_influence(
 #[derive(SystemLabel)]
 struct MoveSheepLabel;
 
+#[allow(clippy::type_complexity)]
 fn move_sheep(
     mut sheep_query: Query<
         (
@@ -318,7 +320,7 @@ fn move_sheep(
                 sheep_coalescence.influences.iter().sum::<Vec2>();
             sheep_coalescence.influences.clear();
             let sheep_alignment_influence =
-                if sheep_alignment.influences.len() > 0 {
+                if !sheep_alignment.influences.is_empty() {
                     sheep_alignment.influences.iter().sum::<Vec2>()
                         / sheep_alignment.influences.len() as f32
                 } else {
