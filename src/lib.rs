@@ -40,11 +40,11 @@ pub fn app() -> App {
     .add_plugin(SheepPlugin)
     .add_plugin(TerrainPlugin)
     .add_loopless_state(GameState::Playing)
-    .add_enter_system(GameState::Playing, start_game)
+    .add_enter_system(GameState::Playing, start_round)
     .add_event::<SpawnClusterEvent>()
     .add_system(spawn_cluster)
     .add_system(check_win.run_in_state(GameState::Playing))
-    .add_startup_system(startup);
+    .add_startup_system(setup);
     app
 }
 
@@ -92,10 +92,6 @@ fn spawn_cluster(
         });
 }
 
-fn startup(mut commands: Commands) {
-    commands.spawn(RoundManager::new());
-}
-
 fn check_win(
     pen_query: Query<&Pen>,
     sheep_query: Query<&Transform, With<SheepTag>>,
@@ -113,15 +109,12 @@ fn check_win(
     }
 }
 
-fn start_game(
+fn setup(
     mut commands: Commands,
     mut mesh_assets: ResMut<Assets<Mesh>>,
     mut standard_material_assets: ResMut<Assets<StandardMaterial>>,
-    mut round_manager_query: Query<&mut RoundManager>,
-    mut spawn_cluster_event_writer: EventWriter<SpawnClusterEvent>,
 ) {
-    let mut round_manager = round_manager_query.single_mut();
-    round_manager.next_level();
+    commands.spawn(RoundManager::new());
 
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
@@ -147,6 +140,17 @@ fn start_game(
         &mut standard_material_assets,
         Vec2::new(0_f32, 0_f32),
     );
+}
+
+fn start_round(
+    mut commands: Commands,
+    mut mesh_assets: ResMut<Assets<Mesh>>,
+    mut standard_material_assets: ResMut<Assets<StandardMaterial>>,
+    mut round_manager_query: Query<&mut RoundManager>,
+    mut spawn_cluster_event_writer: EventWriter<SpawnClusterEvent>,
+) {
+    let mut round_manager = round_manager_query.single_mut();
+    round_manager.next_level();
 
     PenBundle::spawn(
         &mut commands,
