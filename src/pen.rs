@@ -92,8 +92,8 @@ fn spawn_pen(
             fastrand::f32() * 80_f32 - 40_f32,
             fastrand::f32() * 80_f32 - 40_f32,
         );
-        let width = fastrand::f32() * 10_f32 + 5_f32;
-        let height = fastrand::f32() * 10_f32 + 5_f32;
+        let width = fastrand::f32() * 10_f32 + 10_f32;
+        let height = fastrand::f32() * 10_f32 + 10_f32;
         let angle = fastrand::f32() * 2_f32 * std::f32::consts::PI;
 
         commands.spawn(PenBundle::new(
