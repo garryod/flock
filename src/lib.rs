@@ -13,7 +13,7 @@ use field::Field;
 use iyes_loopless::prelude::*;
 use pen::{Pen, PenBundle};
 use player::{PlayerBundle, PlayerPlugin};
-use sheep::{SheepPlugin, SheepTag, SpawnSheepEvent};
+use sheep::{SheepBundle, SheepPlugin, SheepTag};
 use terrain::TerrainPlugin;
 
 pub const LAUNCHER_TITLE: &str = "Flock! Combine the herd.";
@@ -41,8 +41,6 @@ pub fn app() -> App {
     .add_plugin(TerrainPlugin)
     .add_loopless_state(GameState::Playing)
     .add_enter_system(GameState::Playing, start_round)
-    .add_event::<SpawnClusterEvent>()
-    .add_system(spawn_cluster)
     .add_system(check_win.run_in_state(GameState::Playing))
     .add_startup_system(setup);
     app
@@ -67,29 +65,28 @@ impl RoundManager {
     }
 }
 
-struct SpawnClusterEvent(usize);
-
 fn spawn_cluster(
-    mut spawn_cluster_event_reader: EventReader<SpawnClusterEvent>,
-    mut spawn_sheep_event_writer: EventWriter<SpawnSheepEvent>,
+    commands: &mut Commands,
+    mesh_assets: &mut ResMut<Assets<Mesh>>,
+    standard_material_assets: &mut ResMut<Assets<StandardMaterial>>,
+    count: usize,
 ) {
-    spawn_cluster_event_reader
-        .iter()
-        .for_each(|spawn_cluster_event| {
-            let cluster_position = Vec2::new(
-                fastrand::f32() * 80_f32 - 40_f32,
-                fastrand::f32() * 80_f32 - 40_f32,
-            );
-            (0..spawn_cluster_event.0).for_each(|_| {
-                spawn_sheep_event_writer.send(SpawnSheepEvent::new(
-                    cluster_position
-                        + Vec2::new(
-                            fastrand::f32() * 10_f32 - 5_f32,
-                            fastrand::f32() * 10_f32 - 5_f32,
-                        ),
-                ));
-            });
-        });
+    let cluster_position = Vec2::new(
+        fastrand::f32() * 80_f32 - 40_f32,
+        fastrand::f32() * 80_f32 - 40_f32,
+    );
+    (0..count).for_each(|_| {
+        SheepBundle::spawn(
+            commands,
+            mesh_assets,
+            standard_material_assets,
+            cluster_position
+                + Vec2::new(
+                    fastrand::f32() * 10_f32 - 5_f32,
+                    fastrand::f32() * 10_f32 - 5_f32,
+                ),
+        );
+    });
 }
 
 fn check_win(
@@ -147,7 +144,6 @@ fn start_round(
     mut mesh_assets: ResMut<Assets<Mesh>>,
     mut standard_material_assets: ResMut<Assets<StandardMaterial>>,
     mut round_manager_query: Query<&mut RoundManager>,
-    mut spawn_cluster_event_writer: EventWriter<SpawnClusterEvent>,
 ) {
     let mut round_manager = round_manager_query.single_mut();
     round_manager.next_level();
@@ -158,10 +154,12 @@ fn start_round(
         &mut standard_material_assets,
     );
 
-    round_manager
-        .get_cluster_sizes()
-        .iter()
-        .for_each(|&cluster_size| {
-            spawn_cluster_event_writer.send(SpawnClusterEvent(cluster_size))
-        });
+    round_manager.get_cluster_sizes().iter().for_each(|&count| {
+        spawn_cluster(
+            &mut commands,
+            &mut mesh_assets,
+            &mut standard_material_assets,
+            count,
+        )
+    });
 }

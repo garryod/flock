@@ -113,41 +113,27 @@ impl SheepBundle {
             sheep_alignment: Alignment::new(1.0, 10_f32),
         }
     }
-}
 
-pub struct SpawnSheepEvent {
-    position: Vec2,
-}
-
-impl SpawnSheepEvent {
-    pub fn new(position: Vec2) -> Self {
-        Self { position }
+    pub fn spawn(
+        commands: &mut Commands,
+        mesh_assets: &mut ResMut<Assets<Mesh>>,
+        standard_material_assets: &mut ResMut<Assets<StandardMaterial>>,
+        position: Vec2,
+    ) {
+        commands.spawn(SheepBundle::new(
+            mesh_assets.add(Mesh::from(shape::Box {
+                min_x: -0.5,
+                max_x: 0.5,
+                min_y: 0.0,
+                max_y: 0.5,
+                min_z: -0.25,
+                max_z: 0.25,
+            })),
+            standard_material_assets
+                .add(StandardMaterial::from(Color::ANTIQUE_WHITE)),
+            position,
+        ));
     }
-}
-
-fn spawn_sheep(
-    mut spawn_sheep_event_reader: EventReader<SpawnSheepEvent>,
-    mut commands: Commands,
-    mut mesh_assets: ResMut<Assets<Mesh>>,
-    mut standard_material_assets: ResMut<Assets<StandardMaterial>>,
-) {
-    spawn_sheep_event_reader
-        .iter()
-        .for_each(|spawn_sheep_event| {
-            commands.spawn(SheepBundle::new(
-                mesh_assets.add(Mesh::from(shape::Box {
-                    min_x: -0.5,
-                    max_x: 0.5,
-                    min_y: 0.0,
-                    max_y: 0.5,
-                    min_z: -0.25,
-                    max_z: 0.25,
-                })),
-                standard_material_assets
-                    .add(StandardMaterial::from(Color::ANTIQUE_WHITE)),
-                spawn_sheep_event.position,
-            ));
-        });
 }
 
 fn player_influence(
@@ -360,9 +346,7 @@ pub struct SheepPlugin;
 
 impl Plugin for SheepPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SpawnSheepEvent>()
-            .add_system(spawn_sheep)
-            .add_system(move_sheep.label(MoveSheepLabel))
+        app.add_system(move_sheep.label(MoveSheepLabel))
             .add_system(player_influence.before(MoveSheepLabel))
             .add_system(barrier_influence.before(MoveSheepLabel))
             .add_system(sheep_influences.before(MoveSheepLabel));
