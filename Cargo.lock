@@ -161,7 +161,7 @@ dependencies = [
  "async-lock",
  "async-task",
  "concurrent-queue 2.1.0",
- "fastrand",
+ "fastrand 1.9.0",
  "futures-lite",
  "slab",
 ]
@@ -258,7 +258,7 @@ dependencies = [
  "bevy_utils",
  "crossbeam-channel",
  "downcast-rs",
- "fastrand",
+ "fastrand 1.9.0",
  "js-sys",
  "ndk-glue",
  "notify",
@@ -1514,6 +1514,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "fastrand"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6999dc1837253364c2ebb0704ba97994bd874e8f195d665c50b7548f6ea92764"
+
+[[package]]
 name = "filetime"
 version = "0.2.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1684,7 +1690,7 @@ version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7694489acd39452c77daa48516b894c153f192c3578d5a839b62c58099fcbf48"
 dependencies = [
- "fastrand",
+ "fastrand 1.9.0",
  "futures-core",
  "futures-io",
  "memchr",
@@ -2570,7 +2576,7 @@ name = "my-game"
 version = "0.1.0"
 dependencies = [
  "bevy",
- "fastrand",
+ "fastrand 1.9.0",
  "image",
  "iyes_loopless",
  "leafwing-input-manager",
@@ -3582,11 +3588,11 @@ checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
 
 [[package]]
 name = "stylist"
-version = "0.12.0"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a8dccf52b4a6dda7a7e229b712b5a31f3270e77365e2655cfeb13fd713535bf"
+checksum = "d46ee215e84089a9f648d5d77fb21fa5c34f187b88377e9c080ee41940dc9c33"
 dependencies = [
- "fastrand",
+ "fastrand 2.0.0",
  "gloo-events",
  "instant",
  "once_cell",
