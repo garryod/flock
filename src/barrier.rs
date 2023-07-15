@@ -57,42 +57,19 @@ impl BarrierBundle {
             },
         }
     }
-}
 
-pub struct SpawnBarrierEvent {
-    vertex_a: Vec2,
-    vertex_b: Vec2,
-}
-
-impl SpawnBarrierEvent {
-    pub fn new(vertex_a: Vec2, vertex_b: Vec2) -> Self {
-        Self { vertex_a, vertex_b }
-    }
-}
-
-fn spawn_barrier(
-    mut spawn_barrier_event_reader: EventReader<SpawnBarrierEvent>,
-    mut commands: Commands,
-    mut mesh_assets: ResMut<Assets<Mesh>>,
-    mut standard_material_assets: ResMut<Assets<StandardMaterial>>,
-) {
-    spawn_barrier_event_reader
-        .iter()
-        .for_each(|spawn_barrier_event| {
-            commands.spawn(BarrierBundle::new(
-                spawn_barrier_event.vertex_a,
-                spawn_barrier_event.vertex_b,
-                &mut mesh_assets,
-                &mut standard_material_assets,
-            ));
-        });
-}
-
-pub struct BarrierPlugin;
-
-impl Plugin for BarrierPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_event::<SpawnBarrierEvent>()
-            .add_system(spawn_barrier);
+    pub fn spawn(
+        commands: &mut Commands,
+        vertex_a: Vec2,
+        vertex_b: Vec2,
+        mesh_assets: &mut ResMut<Assets<Mesh>>,
+        standard_material_assets: &mut ResMut<Assets<StandardMaterial>>,
+    ) {
+        commands.spawn(Self::new(
+            vertex_a,
+            vertex_b,
+            mesh_assets,
+            standard_material_assets,
+        ));
     }
 }

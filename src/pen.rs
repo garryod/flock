@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::barrier::SpawnBarrierEvent;
+use crate::barrier::BarrierBundle;
 
 #[derive(Component)]
 pub struct Pen {
@@ -28,7 +28,7 @@ impl Pen {
 }
 
 #[derive(Bundle)]
-struct PenBundle {
+pub struct PenBundle {
     pen: Pen,
     #[bundle]
     mesh: PbrBundle,
@@ -69,24 +69,12 @@ impl PenBundle {
             },
         }
     }
-}
 
-pub struct SpawnPenEvent;
-
-impl SpawnPenEvent {
-    pub fn new() -> Self {
-        Self
-    }
-}
-
-fn spawn_pen(
-    mut commands: Commands,
-    mut spawn_pen_event_reader: EventReader<SpawnPenEvent>,
-    mut spawn_barrier_event_writer: EventWriter<SpawnBarrierEvent>,
-    mut mesh_assets: ResMut<Assets<Mesh>>,
-    mut standard_material_assets: ResMut<Assets<StandardMaterial>>,
-) {
-    spawn_pen_event_reader.iter().for_each(|_| {
+    pub fn spawn(
+        commands: &mut Commands,
+        mesh_assets: &mut ResMut<Assets<Mesh>>,
+        standard_material_assets: &mut ResMut<Assets<StandardMaterial>>,
+    ) {
         let centre = Vec2::new(
             fastrand::f32() * 80_f32 - 40_f32,
             fastrand::f32() * 80_f32 - 40_f32,
@@ -95,13 +83,13 @@ fn spawn_pen(
         let height = fastrand::f32() * 10_f32 + 10_f32;
         let angle = fastrand::f32() * 2_f32 * std::f32::consts::PI;
 
-        commands.spawn(PenBundle::new(
+        commands.spawn(Self::new(
             centre,
             width,
             height,
             angle,
-            &mut mesh_assets,
-            &mut standard_material_assets,
+            mesh_assets,
+            standard_material_assets,
         ));
 
         let rot_vector = Vec2::from_angle(angle);
@@ -119,17 +107,14 @@ fn spawn_pen(
 
         rel_corners.iter().zip(rel_corners.iter().skip(1)).for_each(
             |(vertex_a, vertex_b)| {
-                spawn_barrier_event_writer
-                    .send(SpawnBarrierEvent::new(*vertex_a, *vertex_b))
+                BarrierBundle::spawn(
+                    commands,
+                    *vertex_a,
+                    *vertex_b,
+                    mesh_assets,
+                    standard_material_assets,
+                );
             },
         );
-    })
-}
-
-pub struct PenPlugin;
-
-impl Plugin for PenPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_event::<SpawnPenEvent>().add_system(spawn_pen);
     }
 }

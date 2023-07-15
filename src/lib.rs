@@ -1,17 +1,18 @@
 mod barrier;
 mod camera;
 mod common;
+mod field;
 mod pen;
 mod player;
 mod sheep;
 mod terrain;
 
-use barrier::{BarrierPlugin, SpawnBarrierEvent};
 use bevy::prelude::*;
 use camera::MainCameraPlugin;
+use field::Field;
 use iyes_loopless::prelude::*;
-use pen::{Pen, PenPlugin, SpawnPenEvent};
-use player::{PlayerPlugin, SpawnPlayerEvent};
+use pen::{Pen, PenBundle};
+use player::{PlayerBundle, PlayerPlugin};
 use sheep::{SheepPlugin, SheepTag, SpawnSheepEvent};
 use terrain::TerrainPlugin;
 
@@ -37,17 +38,11 @@ pub fn app() -> App {
     .add_plugin(MainCameraPlugin)
     .add_plugin(PlayerPlugin)
     .add_plugin(SheepPlugin)
-    .add_plugin(BarrierPlugin)
-    .add_plugin(PenPlugin)
     .add_plugin(TerrainPlugin)
     .add_loopless_state(GameState::Playing)
-    .add_enter_system(GameState::Playing, start_round)
-    .add_event::<SpawnLightEvent>()
-    .add_system(spawn_light)
+    .add_enter_system(GameState::Playing, start_game)
     .add_event::<SpawnClusterEvent>()
     .add_system(spawn_cluster)
-    .add_event::<SpawnFieldEvent>()
-    .add_system(spawn_field)
     .add_system(check_win.run_in_state(GameState::Playing))
     .add_startup_system(startup);
     app
@@ -101,74 +96,6 @@ fn startup(mut commands: Commands) {
     commands.spawn(RoundManager::new());
 }
 
-struct SpawnLightEvent;
-
-impl SpawnLightEvent {
-    fn new() -> Self {
-        Self
-    }
-}
-
-fn spawn_light(
-    mut commands: Commands,
-    mut spawn_light_event_reader: EventReader<SpawnLightEvent>,
-) {
-    spawn_light_event_reader.iter().for_each(|_| {
-        commands.spawn(DirectionalLightBundle {
-            directional_light: DirectionalLight {
-                color: Color::WHITE,
-                illuminance: 50000_f32,
-                shadows_enabled: true,
-                ..default()
-            },
-            transform: Transform::from_xyz(-100_f32, 50_f32, -50_f32)
-                .looking_at(Vec3::ZERO, Vec3::Y),
-            ..default()
-        });
-    })
-}
-
-struct SpawnFieldEvent;
-
-impl SpawnFieldEvent {
-    fn new() -> Self {
-        Self
-    }
-}
-
-fn spawn_field(
-    mut spawn_field_event_reader: EventReader<SpawnFieldEvent>,
-    mut spawn_barrier_event_writer: EventWriter<SpawnBarrierEvent>,
-) {
-    spawn_field_event_reader.iter().for_each(|_| {
-        let bounds = [
-            Vec2::new(
-                45_f32 + fastrand::f32() * 10_f32,
-                45_f32 + fastrand::f32() * 10_f32,
-            ),
-            Vec2::new(
-                45_f32 + fastrand::f32() * 10_f32,
-                -45_f32 - fastrand::f32() * 10_f32,
-            ),
-            Vec2::new(
-                -45_f32 - fastrand::f32() * 10_f32,
-                -45_f32 - fastrand::f32() * 10_f32,
-            ),
-            Vec2::new(
-                -45_f32 - fastrand::f32() * 10_f32,
-                45_f32 + fastrand::f32() * 10_f32,
-            ),
-        ];
-
-        bounds.iter().zip(bounds.iter().cycle().skip(1)).for_each(
-            |(vertex_a, vertex_b)| {
-                spawn_barrier_event_writer
-                    .send(SpawnBarrierEvent::new(*vertex_a, *vertex_b))
-            },
-        );
-    })
-}
-
 fn check_win(
     pen_query: Query<&Pen>,
     sheep_query: Query<&Transform, With<SheepTag>>,
@@ -186,20 +113,46 @@ fn check_win(
     }
 }
 
-fn start_round(
+fn start_game(
+    mut commands: Commands,
+    mut mesh_assets: ResMut<Assets<Mesh>>,
+    mut standard_material_assets: ResMut<Assets<StandardMaterial>>,
     mut round_manager_query: Query<&mut RoundManager>,
-    mut spawn_player_event_writer: EventWriter<SpawnPlayerEvent>,
-    mut spawn_light_event_writer: EventWriter<SpawnLightEvent>,
     mut spawn_cluster_event_writer: EventWriter<SpawnClusterEvent>,
-    mut spawn_field_event_writer: EventWriter<SpawnFieldEvent>,
-    mut spawn_pen_event_writer: EventWriter<SpawnPenEvent>,
 ) {
     let mut round_manager = round_manager_query.single_mut();
     round_manager.next_level();
 
-    spawn_player_event_writer.send(SpawnPlayerEvent::new(0_f32, 0_f32));
+    commands.spawn(DirectionalLightBundle {
+        directional_light: DirectionalLight {
+            color: Color::WHITE,
+            illuminance: 50000_f32,
+            shadows_enabled: true,
+            ..default()
+        },
+        transform: Transform::from_xyz(-100_f32, 50_f32, -50_f32)
+            .looking_at(Vec3::ZERO, Vec3::Y),
+        ..default()
+    });
 
-    spawn_light_event_writer.send(SpawnLightEvent::new());
+    Field::spawn(
+        &mut commands,
+        &mut mesh_assets,
+        &mut standard_material_assets,
+    );
+
+    PlayerBundle::spawn(
+        &mut commands,
+        &mut mesh_assets,
+        &mut standard_material_assets,
+        Vec2::new(0_f32, 0_f32),
+    );
+
+    PenBundle::spawn(
+        &mut commands,
+        &mut mesh_assets,
+        &mut standard_material_assets,
+    );
 
     round_manager
         .get_cluster_sizes()
@@ -207,8 +160,4 @@ fn start_round(
         .for_each(|&cluster_size| {
             spawn_cluster_event_writer.send(SpawnClusterEvent(cluster_size))
         });
-
-    spawn_field_event_writer.send(SpawnFieldEvent::new());
-
-    spawn_pen_event_writer.send(SpawnPenEvent::new());
 }

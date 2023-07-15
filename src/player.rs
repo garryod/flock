@@ -28,7 +28,7 @@ impl PlayerMovementAction {
 }
 
 #[derive(Bundle)]
-struct PlayerBundle {
+pub struct PlayerBundle {
     tag: PlayerTag,
     #[bundle]
     mesh: PbrBundle,
@@ -69,39 +69,24 @@ impl PlayerBundle {
             speed: MaxSpeed::new(10.0),
         }
     }
-}
 
-pub struct SpawnPlayerEvent {
-    position: Vec2,
-}
-
-impl SpawnPlayerEvent {
-    pub fn new(x: f32, z: f32) -> Self {
-        Self {
-            position: Vec2 { x, y: z },
-        }
+    pub fn spawn(
+        commands: &mut Commands,
+        mesh_assets: &mut ResMut<Assets<Mesh>>,
+        standard_material_assets: &mut ResMut<Assets<StandardMaterial>>,
+        position: Vec2,
+    ) {
+        commands.spawn(PlayerBundle::new(
+            mesh_assets.add(Mesh::from(Capsule {
+                radius: 0.5,
+                depth: 1.0,
+                ..default()
+            })),
+            standard_material_assets
+                .add(StandardMaterial::from(Color::hsl(300.0, 0.5, 0.5))),
+            position,
+        ));
     }
-}
-fn spawn_player(
-    mut spawn_player_event_reader: EventReader<SpawnPlayerEvent>,
-    mut commands: Commands,
-    mut mesh_assets: ResMut<Assets<Mesh>>,
-    mut standard_material_assets: ResMut<Assets<StandardMaterial>>,
-) {
-    spawn_player_event_reader
-        .iter()
-        .for_each(|spawn_player_event| {
-            commands.spawn(PlayerBundle::new(
-                mesh_assets.add(Mesh::from(Capsule {
-                    radius: 0.5,
-                    depth: 1.0,
-                    ..default()
-                })),
-                standard_material_assets
-                    .add(StandardMaterial::from(Color::hsl(300.0, 0.5, 0.5))),
-                spawn_player_event.position,
-            ));
-        })
 }
 
 #[allow(clippy::type_complexity)]
@@ -141,8 +126,6 @@ pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(InputManagerPlugin::<PlayerMovementAction>::default())
-            .add_event::<SpawnPlayerEvent>()
-            .add_system(spawn_player)
             .add_system(move_player);
     }
 }
