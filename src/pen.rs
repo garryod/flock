@@ -51,7 +51,7 @@ impl PenBundle {
                     min_x: -height / 2_f32,
                     max_x: height / 2_f32,
                     min_y: 0_f32,
-                    max_y: 1_f32,
+                    max_y: 0.1_f32,
                     min_z: -width / 2_f32,
                     max_z: width / 2_f32,
                 })),
