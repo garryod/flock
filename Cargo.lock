@@ -1500,9 +1500,9 @@ dependencies = [
 
 [[package]]
 name = "fastrand"
-version = "2.0.0"
+version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6999dc1837253364c2ebb0704ba97994bd874e8f195d665c50b7548f6ea92764"
+checksum = "658bd65b1cf4c852a3cc96f18a8ce7b5640f6b703f905c7d74532294c2a63984"
 
 [[package]]
 name = "fdeflate"
@@ -2355,7 +2355,7 @@ name = "my-game"
 version = "0.1.0"
 dependencies = [
  "bevy",
- "fastrand 2.0.0",
+ "fastrand 2.0.2",
  "image",
  "iyes_loopless",
  "leafwing-input-manager",
