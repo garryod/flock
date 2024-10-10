@@ -7,4 +7,4 @@ workspace = "../.."
 [dependencies]
 my-game = { package = "my-game", path = "../.." }
 bevy = "0.9"
-web-sys = { version = "0.3.64", features = ["Document", "Window"] }
+web-sys = { version = "0.3.69", features = ["Document", "Window"] }
